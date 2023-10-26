@@ -1,5 +1,7 @@
-module.exports = {
-  install: function install(Vue, options = {}) {
+import emitter from 'tiny-emitter/instance'
+
+export default {
+  install: ( options = {}) => {
     if (!options.disabled && (!options.key || options.key.length === 0)) {
       console.warn("Please enter a Zendesk Web Widget Key");
     }
@@ -14,7 +16,12 @@ module.exports = {
 
     window.zESettings = options.settings;
 
-    const root = new Vue();
+    const root = {};
+
+    root.$on = (...args) => emitter.on(...args);
+    root.$once = (...args) => emitter.once(...args);
+    root.$off = (...args) => emitter.off(...args);
+    root.$emit = (...args) => emitter.emit(...args);
 
     let isLoaded = false;
 
@@ -69,8 +76,7 @@ module.exports = {
     root.identify = user => window.zE("webWidget", "identify", user);
     root.prefill = user => window.zE("webWidget", "prefill", user);
     root.setLocale = locale => window.zE("webWidget", "setLocale", locale);
-    root.updateSettings = settings =>
-      window.zE("webWidget", "updateSettings", settings);
+    root.updateSettings = settings => window.zE("webWidget", "updateSettings", settings);
     root.clear = () => window.zE("webWidget", "clear");
     root.updatePath = options => window.zE("updatePath", "clear", options);
     root.toggle = () => window.zE("webWidget", "toggle");
@@ -84,6 +90,7 @@ module.exports = {
       }
     });
 
-    Vue.prototype.$zendesk = root;
+    // app.config.globalProperties.$zendesk = root;
+    return root;
   }
 };
